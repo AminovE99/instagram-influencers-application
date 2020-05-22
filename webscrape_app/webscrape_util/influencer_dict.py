@@ -1,13 +1,15 @@
-from pymongo import MongoClient
-import json
-import networkx as nx
+import os
 from collections import Counter
-from unidecode import unidecode
 
-from webscrape_util.scrape_util import setup_mongo_client, write_json, write_list
+import unidecode as unidecode
+from django.conf.global_settings import DEFAULT_FILE_STORAGE
+
+from instagram_influencers_application.celery_controller import app
+
+from webscrape_app.webscrape_util.scrape_util import setup_mongo_client, write_json, write_list
 
 
-def create_influencer_dict(filepath_json, return_dict=False):
+def create_influencer_dict(collection_name, return_dict=False):
     """
     Create a dictionary with influencer id and posts.
 
@@ -22,9 +24,7 @@ def create_influencer_dict(filepath_json, return_dict=False):
 
     Output: None
     """
-
-    client, collection = setup_mongo_client('instascrape2', 'tennis')
-
+    client, collection = setup_mongo_client('instascrape2', collection_name)
     # Retrieve shortcodes and ids from influencers in MongoDB
     shortcodes_ids = []
     cursor = collection.find({})
@@ -38,9 +38,10 @@ def create_influencer_dict(filepath_json, return_dict=False):
             influencers[sc_id_tuple[1]]['posts'].append(sc_id_tuple[0])
         else:
             influencers[sc_id_tuple[1]] = {'posts': [sc_id_tuple[0]]}
+    print(DEFAULT_FILE_STORAGE)
 
-    # Remove profiles that have been deleted since initial scraping
-    # del influencers['4018066784']
+    filepath_json = os.path.join(os.path.split(__file__)[0], '..', 'data', 'hashtag_likes_dict_{}.json'.format(collection_name))
+    print(filepath_json)
 
     write_json(influencers, filepath_json)
 
@@ -50,18 +51,12 @@ def create_influencer_dict(filepath_json, return_dict=False):
         return influencers
 
 
-def order_influencers(filepath_json, filepath_txt):
-    """
-    Write influencer ids, sorted by number of posts, to a text file.
+@app.task
+def order_influencers(collection):
+    filepath_txt = os.path.join(os.path.split(__file__)[0], '..', 'data', 'ordered_influencers',
+                                 'ordered_influencers_{}.txt'.format(collection))
 
-    Args:
-        filepath_json (str): Filepath where influencer dictionary will be saved as json
-        filepath (str): Filepath where sorted influencer ids will be saved.
-
-    Output: None
-    """
-
-    influencers = create_influencer_dict(filepath_json, return_dict=True)
+    influencers = create_influencer_dict(collection, return_dict=True)
 
     # Sort influencers by number of posts
     inf_sort = sorted(influencers, key=lambda x: len(influencers[x]['posts']), reverse=True)
@@ -223,10 +218,3 @@ def create_caption_dict():
     client.close()
 
     return captions
-
-
-if __name__ == '__main__':
-    create_hashtag_likes_dict("../date/hashtag_likes_dict.json")
-    # create_influencer_dict("date/hashtag_likes_dict.json")
-    order_influencers('/home/emil/Desktop/instagram-influencer-graph/data/hashtag_likes_dict.json',
-                      '/home/emil/Desktop/instagram-influencer-graph/data/ordered_influencers.txt')

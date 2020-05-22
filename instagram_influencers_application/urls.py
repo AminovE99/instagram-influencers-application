@@ -16,8 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from main_app.views import SearchByTagView, InfluencerDictView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('hashtags_parse/', SearchByTagView.as_view())
+    path('hashtags_parse/', SearchByTagView.as_view()),
+    path('create_influencer_dict/', InfluencerDictView.as_view())
 ]

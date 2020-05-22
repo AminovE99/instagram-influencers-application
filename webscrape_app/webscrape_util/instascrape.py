@@ -1,12 +1,8 @@
 import numpy as np
-from selenium import webdriver
-from bs4 import BeautifulSoup
 import time
-import json
 import requests
-from pymongo import MongoClient
 
-from webscrape_app.celery_controller import app
+from instagram_influencers_application.celery_controller import app
 from webscrape_app.webscrape_util.scrape_util import add_new_line, load_last_line, setup_mongo_client
 
 
@@ -50,8 +46,6 @@ def instascrape(page_info_filepath, num_requests, collection_name):
     """
 
     client, collection = setup_mongo_client('instascrape2', collection_name)
-
-
     page_info = ""
     response = requests.get("https://www.instagram.com/graphql/query/?query_id=17875800862117404&variables={{%22tag_name%22:%22tennis%22,%22first%22:{}}}"
                             .format('12'))
