@@ -1,0 +1,2 @@
+redis
+celery==4.4.2

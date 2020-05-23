@@ -1,0 +1,26 @@
+version: '3.3'
+
+services:
+  redis:
+    restart: always
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  worker:
+    build:
+      context: celery-queue
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    container_name: worker
+
+  instagram_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python /instagram_app/manage.py runserver 0.0.0.0:8001
+    container_name: instagram_app
+    ports:
+    - "8001:8001"
