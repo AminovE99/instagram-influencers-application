@@ -62,9 +62,27 @@ See [Taiga.io](https://tree.taiga.io/project/monogrammbot-monogramm__app_slug__/
 
 ## :construction: Install
 
+Execute redis server on port 6379
 ```sh
-echo "[TODO] Describe how to install application"
+docker run -d -p 6379:6379 redis
 ```
+
+You should be sure, that redis server has been uped:
+
+```sh
+docker container ls -a
+```
+Install all libraries from `requirements.txt`
+```
+pip install -r requirements.txt
+```
+Execute django server
+
+```sh
+python manage.py runserver
+```
+
+
 
 ## :rocket: Usage
 
